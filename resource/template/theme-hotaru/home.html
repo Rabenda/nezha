@@ -46,11 +46,11 @@
                     <tr>
                         <th>运行状态</th>
                         <th>节点名</th>
-                        <th>系统</th>
+                        <th>架构</th>
                         <th>IP</th>
                         <th>在线</th>
                         <th>网络(B/s) ↓|↑</th>
-                        <th>流量(B) ↓|↑</th>
+                        <th>CPU型号</th>
                         <th>CPU</th>
                         <th>RAM</th>
                         <th>硬盘</th>
@@ -66,12 +66,12 @@
                             </div>
                         </td>
                         <td>@#server.Name#@</td>
-                        <td>@#server.Host?server.Host.Platform:'-'#@</td>
+                        <td>@#server.Host?server.Host.Arch:'-'#@</td>
                         <td>@#server.Host?server.Host.IP:'-'#@</td>
                         <td>@#server.State?secondToDate(server.State.Uptime):'-'#@</td>
                         <td>@#server.State?readableBytes(server.State.NetInSpeed)+'/s|'+readableBytes(server.State.NetOutSpeed)+'/s':'-'#@
                         </td>
-                        <td>@#server.State?readableBytes(server.State.NetInTransfer)+'|'+readableBytes(server.State.NetOutTransfer):'-'#@
+                        <td>@#server.State?server.Host.CPU:'-'#@
                         </td>
                         <td>
                             <div v-if="server.State" :class="formatPercent(server.live,server.State.CPU, 100).class">
