@@ -130,7 +130,7 @@
             },
             methods: {
                 removeExtraName(name) {
-                    return name.replace('Physical Core', '').replace('Vrtual Core', '')
+                    return name[0].replace('Physical Core', '').replace('Vrtual Core', '')
                 },
                 mergeUsage(state, host) {
                     if (!state) {
