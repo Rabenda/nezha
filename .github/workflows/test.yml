@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - revy-master
     paths-ignore:
       - ".github/workflows/agent.yml"
       - ".github/workflows/test-on-pr.yml"
