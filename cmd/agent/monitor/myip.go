@@ -2,8 +2,10 @@ package monitor
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -33,22 +35,10 @@ var (
 
 func UpdateIP() {
 	for {
-		ipv4 := fetchGeoIP(geoIPApiList, false)
-		ipv6 := fetchGeoIP(geoIPApiList, true)
-		if ipv4.IP == "" && ipv6.IP == "" {
-			time.Sleep(time.Minute)
-			continue
+		if ip, _ := getClientIp(); ip != "" {
+			cachedIP = fmt.Sprintf("%s", ip)
 		}
-		if ipv4.IP == "" || ipv6.IP == "" {
-			cachedIP = fmt.Sprintf("%s%s", ipv4.IP, ipv6.IP)
-		} else {
-			cachedIP = fmt.Sprintf("%s/%s", ipv4.IP, ipv6.IP)
-		}
-		if ipv4.CountryCode != "" {
-			cachedCountry = ipv4.CountryCode
-		} else if ipv6.CountryCode != "" {
-			cachedCountry = ipv6.CountryCode
-		}
+
 		time.Sleep(time.Minute * 30)
 	}
 }
@@ -88,4 +78,42 @@ func fetchGeoIP(servers []string, isV6 bool) geoIP {
 		}
 	}
 	return ip
+}
+
+func getClientIp() (string, error) {
+	addrs, err := net.InterfaceAddrs()
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, address := range addrs {
+		// 检查ip地址判断是否回环地址
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && isPrivate(ipnet.IP) {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String(), nil
+			}
+		}
+	}
+
+	return "", errors.New("Can not find the client ip address!")
+}
+
+func isPrivate(ip net.IP) bool {
+	if ip4 := ip.To4(); ip4 != nil {
+		// Following RFC 1918, Section 3. Private Address Space which says:
+		//   The Internet Assigned Numbers Authority (IANA) has reserved the
+		//   following three blocks of the IP address space for private internets:
+		//     10.0.0.0        -   10.255.255.255  (10/8 prefix)
+		//     172.16.0.0      -   172.31.255.255  (172.16/12 prefix)
+		//     192.168.0.0     -   192.168.255.255 (192.168/16 prefix)
+		return ip4[0] == 10 ||
+			(ip4[0] == 172 && ip4[1]&0xf0 == 16) ||
+			(ip4[0] == 192 && ip4[1] == 168)
+	}
+	// IPv6 Drop
+	return false
+	// Following RFC 4193, Section 8. IANA Considerations which says:
+	//   The IANA has assigned the FC00::/7 prefix to "Unique Local Unicast".
+	// return len(ip) == IPv6len && ip[0]&0xfe == 0xfc
 }
