@@ -46,11 +46,10 @@
                     <tr>
                         <th>运行状态</th>
                         <th>节点名</th>
+                        <th>CPU型号</th>
                         <th>架构</th>
                         <th>IP</th>
                         <th>在线</th>
-                        <th>网络(B/s) ↓|↑</th>
-                        <th>CPU型号</th>
                         <th>CPU</th>
                         <th>RAM</th>
                         <th>硬盘</th>
@@ -66,13 +65,10 @@
                             </div>
                         </td>
                         <td>@#server.Name#@</td>
+                        <td>@#server.State?removeExtraName(server.Host.CPU):'-'#@</td>
                         <td>@#server.Host?server.Host.Arch:'-'#@</td>
                         <td>@#server.Host?server.Host.IP:'-'#@</td>
                         <td>@#server.State?secondToDate(server.State.Uptime):'-'#@</td>
-                        <td>@#server.State?readableBytes(server.State.NetInSpeed)+'/s|'+readableBytes(server.State.NetOutSpeed)+'/s':'-'#@
-                        </td>
-                        <td>@#server.State?server.Host.CPU:'-'#@
-                        </td>
                         <td>
                             <div v-if="server.State" :class="formatPercent(server.live,server.State.CPU, 100).class">
                                 <div class="bar" :style="formatPercent(server.live,server.State.CPU, 100).style">
@@ -102,36 +98,6 @@
                 </tbody>
             </table>
         </div>
-
-        <div class="page-section">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-4 col-md-4 col-sm-4" v-for='server in servers' :id="server.ID">
-                        <div class="panel panel-block panel-block-sm panel-location">
-                            <div class="location-header">
-                                <h3 class="h4"><img
-                                        :src="'/static/theme-hotaru/img/clients/'+(server.Host&&server.Host.CountryCode?server.Host.CountryCode.toUpperCase():'CN')+'.png'">
-                                    &nbsp;@#server.Name#@</h3>
-                                <i class="zmdi zmdi-check-circle text-success"></i>
-                            </div>
-                            <div class="location-progress">
-                                <div
-                                    :class="formatPercent(server.live,mergeUsage(server.State, server.Host),100).class">
-                                    <div class="bar"
-                                        :style="formatPercent(server.live,mergeUsage(server.State, server.Host),100).style">
-                                    </div>
-                                </div>
-                            </div>
-                            <ul class="location-info list-styled">
-                                <li><span class="list-label">网络:</span>
-                                    @#server.State?formatByteSize(server.State.NetInSpeed)+'/s|'+formatByteSize(server.State.NetOutSpeed)+'/s':'-'#@
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
     <div class="sidebar-container">
         <ul>
@@ -140,7 +106,7 @@
         </ul>
     </div>
     <footer>
-        <p style="text-align:center;padding: 15px;">Powered by <a href="https://github.com/naiba/nezha">哪吒监控</a> build ·
+        <p style="text-align:center;padding: 15px;">Powered by <a href="https://github.com/Rabenda/nezha">哪吒监控</a> build ·
             {{.Version}}
             <a href="/service">服务状态</a>
             <a href="/server">管理后台</a>
@@ -163,6 +129,9 @@
                 this.troggleDarkMode();
             },
             methods: {
+                removeExtraName(name) {
+                    return name.replace('Physical Core', '').replace('Vrtual Core', '')
+                },
                 mergeUsage(state, host) {
                     if (!state) {
                         return 0
